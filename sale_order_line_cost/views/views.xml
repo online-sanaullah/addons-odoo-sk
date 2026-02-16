@@ -1,0 +1,110 @@
+<odoo>
+	<data>
+		<record id="sale_order_line_cogs_tree_view" model="ir.ui.view">
+	        <field name="name">sale.order.line.view.tree.cogs</field>
+	        <field name="model">sale.order.line</field>
+	        <field name="inherit_id" ref="odoo_sale_order_line_views.sale_order_line_tree_view" />
+	        <field name="arch" type="xml">
+	        	<xpath expr="//field[@name='name']" position="attributes">
+					<attribute name="optional">hide</attribute>
+				</xpath>
+	        	<xpath expr="//field[@name='price_subtotal']" position="after">
+	        		<!-- 
+	        		<field name="cogs_journal_entry_ids" widget="many2many_tags" optional="hide"/>
+        		 	-->
+	        		<field name="cogs_journal_entry_names" optional="hide"/>
+	        		<field name="cogs_amount" optional="hide" />
+	        		<!-- 
+	        		<field name="sales_journal_entry_ids" widget="many2many_tags" optional="hide" />
+	        		 -->
+	        		<field name="sales_journal_entry_names" optional="hide" />
+	        		<field name="revenue_amount" optional="hide" />
+				</xpath>
+				<xpath expr="//field[@name='order_id']" position="before">
+					<field name="date_order" optional="show"/>
+				</xpath>
+				<xpath expr="//field[@name='order_partner_id']" position="after">
+					<field name="warehouse_id" optional="show"/>
+					<field name="team_id" optional="show"/>
+				</xpath>
+				<xpath expr="//field[@name='order_line_image']" position="attributes">
+					<attribute name="optional">hide</attribute>
+				</xpath>
+				<xpath expr="//field[@name='product_uom']" position="attributes">
+					<attribute name="optional">hide</attribute>
+				</xpath>
+				<xpath expr="//field[@name='qty_delivered']" position="before">
+					<field name="delivery_date" optional="hide" />
+				</xpath>
+				<xpath expr="//field[@name='qty_delivered']" position="attributes">
+					<attribute name="optional">show</attribute>
+				</xpath>
+				<xpath expr="//field[@name='qty_invoiced']" position="before">
+					<field name="invoice_date" optional="hide" />
+				</xpath>
+				<xpath expr="//field[@name='qty_invoiced']" position="attributes">
+					<attribute name="optional">show</attribute>
+				</xpath>
+				<xpath expr="//field[@name='qty_to_invoice']" position="attributes">
+					<attribute name="optional">hide</attribute>
+				</xpath>
+	        </field>
+	    </record>
+	    
+	    <record id="sale_order_line_cogs_form_view" model="ir.ui.view">
+	        <field name="name">sale.order.line.view.form.cogs</field>
+	        <field name="model">sale.order.line</field>
+	        <field name="inherit_id" ref="sale.sale_order_line_view_form_readonly" />
+	        <field name="arch" type="xml">
+	        	<xpath expr="//field[@name='currency_id']" position="after">
+	        		<field name="cogs_journal_entry_ids" widget="many2many_tags" readonly="1"/>
+	        		<field name="cogs_amount" readonly="1" />
+	        		<field name="sales_journal_entry_ids" widget="many2many_tags" readonly="1" />
+	        		<field name="revenue_amount" readonly="1" />
+				</xpath>
+	        </field>
+	    </record>
+	    
+	    <record id="sale_order_line_cogs_search_view" model="ir.ui.view">
+	        <field name="name">sale.order.line.view.search.cogs</field>
+	        <field name="model">sale.order.line</field>
+	        <field name="inherit_id" ref="odoo_sale_order_line_views.view_sales_order_line_search_filter" />
+	        <field name="arch" type="xml">
+	        	<xpath expr="//field[@name='product_id']" position="after">
+	        		<field name="team_id" />
+	        		<field name="warehouse_id" />
+				</xpath>
+				<filter name="filter_create_date" position="after">
+					<filter string="Order Date" name="filter_date_order" date="date_order"/>
+					<filter string="Delivery Date" name="filter_delivery_date" date="delivery_date"/>
+					<filter string="Invoice Date" name="filter_invoice_date" date="invoice_date"/>
+				</filter>
+				
+				<filter name="order" position="after">
+                	<filter string="Sales Team" name="salesteam" domain="[]" context="{'group_by':'team_id'}"/>
+                	<filter string="Warehouse" name="warehouse" domain="[]" context="{'group_by':'warehouse_id'}"/>
+                </filter>
+                <filter name="date" position="after">
+                	<filter name="date_order" string="Order Date" domain="[]" context="{'group_by':'date_order'}"/>
+                	<filter name="delivery_date" string="Delivery Date" domain="[]" context="{'group_by':'delivery_date'}"/>
+                	<filter name="invoice_date" string="Invoice Date" domain="[]" context="{'group_by':'invoice_date'}"/>
+                </filter>
+	        </field>
+	    </record>
+	    
+	    <record id="account_move_line_cogs_search_view" model="ir.ui.view">
+	        <field name="name">account.move.line.view.search.cogs</field>
+	        <field name="model">account.move.line</field>
+	        <field name="inherit_id" ref="account.view_account_move_line_filter" />
+	        <field name="arch" type="xml">
+				<filter name="misc_filter" position="after">
+					<separator/>
+					<filter string="Revenue" name="revenue" domain="[('account_id.account_type', 'in', ['income', 'other_income'])]" />
+					<filter string="C.O.G.S." name="cost_of_goods" domain="[('account_id.account_type', '=', 'expense_direct_cost')]" />
+				</filter>
+				
+	        </field>
+	    </record>
+	    
+	</data>
+</odoo>

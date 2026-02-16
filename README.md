@@ -1,0 +1,1 @@
+# addons-odoo-sk

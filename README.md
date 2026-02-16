@@ -1,1 +1,2 @@
-# addons-odoo-sk
+# Customized Addons for Odoo
+## Developed by Sanaullah Khan

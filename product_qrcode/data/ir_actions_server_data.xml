@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+       <record id="generate_qr_product_action" model="ir.actions.server">
+        <field name="name">Generate Qr</field>
+        <field name="model_id" ref="product_qrcode.model_product_product"/>
+        <field name="binding_model_id" ref="product_qrcode.model_product_product"/>
+        <field name="binding_view_types">form,list</field>
+        <field name="state">code</field>
+        <field name="code">
+            for record in records:
+               if record.barcode:
+                  action = record.generate_qr()
+           </field>
+       </record>
+</odoo>

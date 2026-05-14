@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="monthly_trial_balance_report" model="account.report">
+        <field name="name">Monthly Trial Balance</field>
+        <field name="filter_date_range" eval="True"/>
+        <field name="default_opening_date_filter">this_year</field>
+        <field name="filter_show_draft" eval="True"/>
+        <field name="filter_multi_company">selector</field>
+        <field name="filter_analytic" eval="True"/>
+        <field name="search_bar" eval="True"/>
+        <field name="load_more_limit" eval="80"/>
+        <field name="custom_handler_model_id" ref="model_monthly_trial_balance_report_handler"/>
+        <field name="column_ids">
+            <record id="monthly_trial_balance_col_year" model="account.report.column">
+                <field name="name">Year</field>
+                <field name="expression_label">year</field>
+                <field name="figure_type">string</field>
+            </record>
+            <record id="monthly_trial_balance_col_month" model="account.report.column">
+                <field name="name">Month</field>
+                <field name="expression_label">month</field>
+                <field name="figure_type">string</field>
+            </record>
+            <record id="monthly_trial_balance_col_initial_balance" model="account.report.column">
+                <field name="name">Initial Balance</field>
+                <field name="expression_label">initial_balance</field>
+                <field name="figure_type">monetary</field>
+            </record>
+            <record id="monthly_trial_balance_col_debit" model="account.report.column">
+                <field name="name">Debit</field>
+                <field name="expression_label">debit</field>
+                <field name="figure_type">monetary</field>
+            </record>
+            <record id="monthly_trial_balance_col_credit" model="account.report.column">
+                <field name="name">Credit</field>
+                <field name="expression_label">credit</field>
+                <field name="figure_type">monetary</field>
+            </record>
+            <record id="monthly_trial_balance_col_ending_balance" model="account.report.column">
+                <field name="name">Ending Balance</field>
+                <field name="expression_label">ending_balance</field>
+                <field name="figure_type">monetary</field>
+            </record>
+        </field>
+    </record>
+
+    <record id="monthly_trial_balance_action" model="ir.actions.client">
+        <field name="name">Monthly Trial Balance</field>
+        <field name="tag">account_report</field>
+        <field name="context" eval="{'report_id': ref('monthly_trial_balance_report')}"/>
+    </record>
+
+    <menuitem id="monthly_trial_balance_menu"
+              name="Monthly Trial Balance"
+              parent="account_reports.account_reports_audit_reports_menu"
+              action="monthly_trial_balance_action"
+              sequence="260"/>
+</odoo>

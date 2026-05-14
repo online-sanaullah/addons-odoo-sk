@@ -1,0 +1,34 @@
+<odoo>
+	<data>
+	    
+	    <record id="view_stock_move_line_location_tree" model="ir.ui.view">
+	        <field name="name">stock.move.line.tree.location</field>
+	        <field name="model">stock.move.line</field>
+	        <field name="arch" type="xml">
+	            <tree decoration-success="move_direction == 'in'" decoration-danger="move_direction == 'out'" default_order="date DESC">
+	            	<field name="move_direction" column_invisible="True" />
+	            	<field name="date" />
+	            	<field name="location_id" />
+	            	<field name="location_dest_id" />
+	            	<field name="quantity" />
+	            	<field name="product_uom_id" />
+	            	<field name="total_value" />
+	            	<field name="product_id" />
+	            	<field name="account_move_id" />
+                	<button name="action_view_journal_entry" type="object" class="btn btn-link text-info" 
+	                	icon="fa-book" title="Related Journal Entry"  invisible="not account_move_id" />
+	            	<field name="reference" optional="hide"/>
+	            	<!-- 
+	                <field name="move_id" />
+	                 -->
+	                <field name="origin" optional="hide"/>
+	                <field name="write_uid" optional="hide"/>
+	                <field name="picking_id" />
+	                <button name="action_view_picking" type="object" class="btn btn-link text-info" 
+	                	icon="fa-arrow-right" title="Related Transfer"  invisible="not picking_id" />
+	            </tree>
+	        </field>
+	    </record>
+	
+	</data>
+</odoo>

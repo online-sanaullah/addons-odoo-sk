@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Auto-numbering for new requests: SCR/2026/0001 -->
+    <record id="seq_warehouse_stock_count_request" model="ir.sequence">
+        <field name="name">Stock Count Request</field>
+        <field name="code">warehouse.stock.count.request</field>
+        <field name="prefix">SCR/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Form                                                         -->
+    <!-- ============================================================ -->
+    <record id="warehouse_stock_count_request_form_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.request.form</field>
+        <field name="model">warehouse.stock.count.request</field>
+        <field name="arch" type="xml">
+            <form string="Stock Count Request">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object"
+                            class="oe_highlight" invisible="state != 'draft'"/>
+                    <button name="action_generate_counts" string="Generate Counts" type="object"
+                            class="oe_highlight" invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state not in ('draft', 'confirmed')"/>
+                    <button name="action_reset_to_draft" string="Reset to Draft" type="object"
+                            invisible="state not in ('cancel', 'confirmed')"/>
+                    <field name="state" widget="statusbar"
+                           statusbar_visible="draft,confirmed,generated"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_counts" type="object"
+                                class="oe_stat_button" icon="fa-list-alt"
+                                invisible="generated_count_count == 0">
+                            <field name="generated_count_count" widget="statinfo" string="Warehouse Counts"/>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <!-- Defaults applied to every warehouse line on add.
+                                 Date paired with products at the top for quick entry. -->
+                            <field name="planned_date"
+                                   readonly="state != 'draft'"/>
+                            <field name="user_ids" widget="many2many_tags"
+                                   readonly="state != 'draft'"/>
+                            <field name="company_id" groups="base.group_multi_company"
+                                   readonly="state != 'draft'"/>
+                        </group>
+                        <group>
+                            <field name="product_ids" widget="many2many_tags"
+                                   readonly="state != 'draft'"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Warehouses" name="warehouses">
+                            <!-- Each warehouse line has its own date and users.
+                                 Onchange on warehouse_id prefills from the parent;
+                                 the user can then override either field. -->
+                            <field name="warehouse_line_ids"
+                                   readonly="state != 'draft'"
+                                   context="{'default_planned_date': planned_date}">
+                                <tree editable="bottom">
+                                    <field name="warehouse_id"/>
+                                    <field name="planned_date"/>
+                                    <field name="user_ids" widget="many2many_tags"/>
+                                    <field name="count_id" readonly="1" optional="show"/>
+                                </tree>
+                            </field>
+                            <p class="text-muted">
+                                Date and users prefill from the main values above when a warehouse is added.
+                                Edit either column to override for a specific warehouse.
+                            </p>
+                        </page>
+                        <page string="Notes" name="notes">
+                            <field name="notes" nolabel="1" placeholder="Internal notes about this count request..."
+                                   readonly="state != 'draft'"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Tree                                                         -->
+    <!-- ============================================================ -->
+    <record id="warehouse_stock_count_request_tree_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.request.tree</field>
+        <field name="model">warehouse.stock.count.request</field>
+        <field name="arch" type="xml">
+            <tree string="Stock Count Requests" sample="1"
+                  decoration-muted="state == 'cancel'"
+                  decoration-success="state == 'generated'"
+                  decoration-info="state == 'confirmed'">
+                <field name="name"/>
+                <field name="planned_date"/>
+                <field name="user_ids" widget="many2many_tags" optional="show"/>
+                <field name="product_ids" widget="many2many_tags" optional="hide"/>
+                <field name="generated_count_count" string="Counts"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'confirmed'"
+                       decoration-success="state == 'generated'"
+                       decoration-danger="state == 'cancel'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Search                                                       -->
+    <!-- ============================================================ -->
+    <record id="warehouse_stock_count_request_search_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.request.search</field>
+        <field name="model">warehouse.stock.count.request</field>
+        <field name="arch" type="xml">
+            <search string="Stock Count Requests">
+                <field name="name"/>
+                <field name="user_ids"/>
+                <field name="product_ids"/>
+                <field name="warehouse_line_ids" string="Warehouse"
+                       filter_domain="[('warehouse_line_ids.warehouse_id', 'ilike', self)]"/>
+                <field name="planned_date"/>
+
+                <separator/>
+                <filter string="Draft"     name="filter_draft"     domain="[('state', '=', 'draft')]"/>
+                <filter string="Confirmed" name="filter_confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter string="Generated" name="filter_generated" domain="[('state', '=', 'generated')]"/>
+                <filter string="Cancelled" name="filter_cancel"    domain="[('state', '=', 'cancel')]"/>
+
+                <separator/>
+                <filter string="My Requests" name="filter_my"
+                        domain="[('user_ids', 'in', uid)]"/>
+
+                <separator/>
+                <filter string="Date" name="filter_date" date="planned_date"/>
+
+                <group expand="0" string="Group By">
+                    <filter string="State"        name="group_state" context="{'group_by': 'state'}"/>
+                    <filter string="Planned Date" name="group_date"  context="{'group_by': 'planned_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ============================================================ -->
+    <!-- Action + Menu                                                -->
+    <!-- ============================================================ -->
+    <record id="action_warehouse_stock_count_request" model="ir.actions.act_window">
+        <field name="name">Count Requests</field>
+        <field name="res_model">warehouse.stock.count.request</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="warehouse_stock_count_request_search_view"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create your first stock count request</p>
+            <p>
+                Request a count of one or more products across one or more
+                warehouses. On generation, the actual stock count records are
+                created and assigned to the responsible users with a deadline.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_stock_count_requests"
+              name="Count Requests"
+              parent="warehouse_stock_count.menu_stock_count_root"
+              action="action_warehouse_stock_count_request"
+              sequence="5"/>
+
+</odoo>

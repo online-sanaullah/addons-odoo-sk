@@ -103,6 +103,9 @@
             	</header>
                 <sheet>
                 	<div class="oe_button_box" name="button_box">
+                		<button string="Products Count" class="oe_stat_button" icon="fa-th-list" name="action_view_lines" type="object" invisible="line_ids_count==0">
+                			<field name="line_ids_count" widget="statinfo" string="Products Count"/>
+                		</button>
                 		<button string="Adjustments" class="oe_stat_button" icon="fa-exchange" name="action_adjustment_product_moves" type="object" invisible="adjustment_moves_count==0"/>
                 	</div>
                 	<label for="warehouse_id"/>
@@ -113,7 +116,10 @@
                     </h2>
                     <group>
                     	<field name="line_ids" readonly="warehouse_id==False or state!='draft'" nolabel="1" colspan="2" context="{'default_state': state}">
-	                        <tree editable="bottom" limit="500">
+	                        <!-- limit set very high so all lines render on one page;
+	                             non-stored compute columns are optional='hide' so they
+	                             cost nothing unless the user toggles them on. -->
+	                        <tree editable="bottom" limit="9999">
 	                            <field name="product_id"/>
 	                            <field name="add_new_product" widget="boolean_toggle" readonly="state != 'draft' or product_id==False" column_invisible="1"/>
 	                            <field name="location_id_domain" column_invisible="1"/>
@@ -121,6 +127,10 @@
 	                            <field name="theoretical_qty" readonly="1"/>
 	                            <field name="counted_qty" readonly="state != 'draft' or location_id==False"/>
 	                            <field name="difference"/>
+	                            <field name="last_count_date" optional="hide" readonly="1"/>
+	                            <field name="last_count_qty" optional="hide" readonly="1"/>
+	                            <field name="in_qty_since_last_count" optional="hide" readonly="1" sum="Units In"/>
+	                            <field name="out_qty_since_last_count" optional="hide" readonly="1" sum="Units Out"/>
 	                            <field name="state" column_invisible="1" />
 	                        </tree>
 	                    </field>    
@@ -136,10 +146,30 @@
         </field>
     </record>
 
+    <record id="warehouse_stock_count_calendar_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.calendar</field>
+        <field name="model">warehouse.stock.count</field>
+        <field name="arch" type="xml">
+            <!-- One card per stock count, dropped on its date. Colored by
+                 warehouse so it's instantly clear which warehouses got
+                 counted on which days. Click a card to peek (popup), or
+                 click an empty day to open the form for a new count. -->
+            <calendar string="Stock Counts"
+                      date_start="date"
+                      color="warehouse_id"
+                      mode="month"
+                      quick_create="0"
+                      event_open_popup="1">
+                <field name="warehouse_id" filters="1"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
     <record id="action_stock_count" model="ir.actions.act_window">
         <field name="name">Stock Counts</field>
         <field name="res_model">warehouse.stock.count</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">tree,calendar,form</field>
     </record>
 
     <menuitem id="menu_stock_count_root"
@@ -148,5 +178,254 @@
     <menuitem id="menu_stock_count"
               name="Warehouse Stock Counts"
               parent="menu_stock_count_root"
-              action="action_stock_count"/>
+              action="action_stock_count"
+              sequence="10"/>
+
+    <!-- ============================================================ -->
+    <!-- Stock Count Lines Explorer                                   -->
+    <!-- Read-only browser + analytics over all product lines.        -->
+    <!-- Stored related fields (date, warehouse_id, state,            -->
+    <!-- product_categ_id, company_id) enable group-by / pivot /      -->
+    <!-- graph aggregation. Dotted paths still used in filter_domain  -->
+    <!-- for product attributes that are only needed for search.      -->
+    <!-- XLSX export comes free from Odoo's list-view exporter.       -->
+    <!-- ============================================================ -->
+
+    <record id="warehouse_stock_count_line_tree_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.line.tree</field>
+        <field name="model">warehouse.stock.count.line</field>
+        <field name="arch" type="xml">
+            <tree string="Counted Products" create="0" delete="0" edit="0" sample="0">
+                <field name="date"/>
+                <field name="warehouse_id"/>
+                <field name="count_id" string="Stock Count" optional="hide"/>
+                <field name="product_id"/>
+                <field name="product_categ_id" optional="hide"/>
+                <field name="location_id"/>
+                <field name="theoretical_qty" sum="On Hand"/>
+                <field name="counted_qty" sum="Counted"/>
+                <field name="difference" sum="Difference"
+                       decoration-danger="difference &lt; 0"
+                       decoration-warning="difference &gt; 0"/>
+                <!-- Optional history columns. Hidden by default; non-stored
+                     computes that only run when the user toggles them on. -->
+                <field name="last_count_date" optional="hide"/>
+                <field name="last_count_qty" optional="hide"/>
+                <field name="in_qty_since_last_count" optional="hide" sum="Units In"/>
+                <field name="out_qty_since_last_count" optional="hide" sum="Units Out"/>
+                <field name="company_id" optional="hide" groups="base.group_multi_company"/>
+                <field name="state" widget="badge"
+                       decoration-info="state == 'draft'"
+                       decoration-warning="state == 'pending'"
+                       decoration-success="state in ('approved','adjusted')"
+                       decoration-danger="state == 'refused'"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="warehouse_stock_count_line_editable_tree_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.line.tree.editable</field>
+        <field name="model">warehouse.stock.count.line</field>
+        <field name="arch" type="xml">
+            <!-- Used by the smart button on the stock count form. Inline-
+                 editable, scoped via action domain/context to one count.
+                 Editability still respects the parent count's state via the
+                 line's related 'state' field. -->
+            <tree string="Product Lines" editable="bottom" multi_edit="1" sample="0">
+                <field name="state" column_invisible="1"/>
+                <field name="product_id" readonly="state != 'draft'"/>
+                <field name="location_id_domain" column_invisible="1"/>
+                <field name="location_id"
+                       domain="location_id_domain"
+                       options="{'no_create': True, 'no_open': True}"
+                       readonly="state != 'draft' or product_id==False"/>
+                <field name="theoretical_qty" readonly="1"/>
+                <field name="counted_qty" readonly="state != 'draft' or location_id==False"/>
+                <field name="difference" readonly="1"
+                       decoration-danger="difference &lt; 0"
+                       decoration-warning="difference &gt; 0"
+                       sum="Difference"/>
+                <field name="last_count_date" optional="hide" readonly="1"/>
+                <field name="last_count_qty" optional="hide" readonly="1"/>
+                <field name="in_qty_since_last_count" optional="hide" readonly="1" sum="Units In"/>
+                <field name="out_qty_since_last_count" optional="hide" readonly="1" sum="Units Out"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="warehouse_stock_count_line_graph_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.line.graph</field>
+        <field name="model">warehouse.stock.count.line</field>
+        <field name="arch" type="xml">
+            <!-- Default: variance bars per warehouse. Users can switch the
+                 measure (difference / theoretical / counted), the chart type
+                 (bar / line / pie), and the dimensions from the UI. -->
+            <graph string="Stock Count Variance Analysis" type="bar" sample="1">
+                <field name="warehouse_id"/>
+                <field name="difference" type="measure"/>
+                <field name="theoretical_qty" type="measure"/>
+                <field name="counted_qty" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="product_stock_count_line_graph_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.line.product.graph</field>
+        <field name="model">warehouse.stock.count.line</field>
+        <field name="arch" type="xml">
+            <!-- Used by the smart button on the product form. Time-series
+                 line chart: one line per warehouse so users can compare how
+                 this product's count moved across warehouses. -->
+            <graph string="Counted Qty Over Time per Warehouse" type="line" sample="1">
+                <field name="date" interval="day"/>
+                <field name="warehouse_id"/>
+                <field name="counted_qty" type="measure"/>
+                <field name="theoretical_qty" type="measure"/>
+                <field name="difference" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_product_template_form_inherit_stock_count" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.stock.count</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Smart button into the standard product button_box.
+                 Sits alongside the inventory smart buttons (On Hand, Forecasted...). -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_stock_count_lines" type="object"
+                        class="oe_stat_button" icon="fa-line-chart"
+                        invisible="stock_count_line_count == 0">
+                    <field name="stock_count_line_count" widget="statinfo" string="Stock Counts"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_product_product_form_inherit_stock_count" model="ir.ui.view">
+        <field name="name">product.product.form.inherit.stock.count</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Variant-level smart button. Same action, but the model-level
+                 domain on product.product scopes to this exact variant rather
+                 than all variants of the template. -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_stock_count_lines" type="object"
+                        class="oe_stat_button" icon="fa-line-chart"
+                        invisible="stock_count_line_count == 0">
+                    <field name="stock_count_line_count" widget="statinfo" string="Stock Counts"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="warehouse_stock_count_line_pivot_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.line.pivot</field>
+        <field name="model">warehouse.stock.count.line</field>
+        <field name="arch" type="xml">
+            <!-- Default layout: warehouses down, days across, three measures.
+                 Users can drag dimensions to rows/columns and expand groups
+                 (by product, category, location, state...) from the UI. -->
+            <pivot string="Stock Count Analysis" sample="1">
+                <field name="warehouse_id" type="row"/>
+                <field name="date" interval="day" type="col"/>
+                <field name="theoretical_qty" type="measure"/>
+                <field name="counted_qty" type="measure"/>
+                <field name="difference" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="warehouse_stock_count_line_search_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.line.search</field>
+        <field name="model">warehouse.stock.count.line</field>
+        <field name="arch" type="xml">
+            <search string="Search Counted Products">
+                <!-- Multi-attribute product search (name / internal ref / barcode).
+                     default_code and barcode aren't stored on the line; dotted-path
+                     filter_domain traverses to product_id at search time. -->
+                <field name="product_id" string="Product"
+                       filter_domain="['|', '|',
+                                       ('product_id.name', 'ilike', self),
+                                       ('product_id.default_code', 'ilike', self),
+                                       ('product_id.barcode', 'ilike', self)]"/>
+                <field name="product_id" string="Internal Reference"
+                       filter_domain="[('product_id.default_code', 'ilike', self)]"/>
+                <field name="product_id" string="Barcode"
+                       filter_domain="[('product_id.barcode', 'ilike', self)]"/>
+                <!-- Stored fields: direct typeable search -->
+                <field name="product_categ_id"/>
+                <field name="warehouse_id"/>
+                <field name="location_id"/>
+                <field name="count_id" string="Stock Count"/>
+                <field name="date"/>
+
+                <separator/>
+                <filter string="Has Variance" name="has_difference"
+                        domain="[('difference', '!=', 0)]"/>
+                <filter string="Surplus (Counted &gt; On Hand)" name="positive_difference"
+                        domain="[('difference', '&gt;', 0)]"/>
+                <filter string="Shortage (Counted &lt; On Hand)" name="negative_difference"
+                        domain="[('difference', '&lt;', 0)]"/>
+
+                <separator/>
+                <!-- product_id.type isn't stored on the line, but dotted-path
+                     filter_domain works fine for filters. -->
+                <filter string="Storable Products" name="filter_type_product"
+                        domain="[('product_id.type', '=', 'product')]"/>
+                <filter string="Consumable Products" name="filter_type_consu"
+                        domain="[('product_id.type', '=', 'consu')]"/>
+
+                <separator/>
+                <filter string="Draft"     name="filter_state_draft"     domain="[('state', '=', 'draft')]"/>
+                <filter string="Validated" name="filter_state_validated" domain="[('state', '=', 'validated')]"/>
+                <filter string="Submitted" name="filter_state_pending"   domain="[('state', '=', 'pending')]"/>
+                <filter string="Approved"  name="filter_state_approved"  domain="[('state', '=', 'approved')]"/>
+                <filter string="Adjusted"  name="filter_state_adjusted"  domain="[('state', '=', 'adjusted')]"/>
+                <filter string="Refused"   name="filter_state_refused"   domain="[('state', '=', 'refused')]"/>
+
+                <separator/>
+                <!-- Built-in date dropdown: Today / This Week / This Month / This Quarter / This Year / Last Year etc. -->
+                <filter string="Date" name="filter_date" date="date"/>
+
+                <group expand="0" string="Group By">
+                    <filter string="Date"             name="group_date"          context="{'group_by': 'date'}"/>
+                    <filter string="Warehouse"        name="group_warehouse"     context="{'group_by': 'warehouse_id'}"/>
+                    <filter string="Location"         name="group_location"      context="{'group_by': 'location_id'}"/>
+                    <filter string="Product"          name="group_product"       context="{'group_by': 'product_id'}"/>
+                    <filter string="Product Category" name="group_product_categ" context="{'group_by': 'product_categ_id'}"/>
+                    <filter string="Stock Count"      name="group_count"         context="{'group_by': 'count_id'}"/>
+                    <filter string="State"            name="group_state"         context="{'group_by': 'state'}"/>
+                </group>
+
+                <!-- Left-side panel for one-click filtering on tree view.
+                     Hidden automatically on graph/pivot/form. -->
+                <searchpanel>
+                    <field name="warehouse_id" icon="fa-building" enable_counters="1"/>
+                    <field name="state" icon="fa-flag" enable_counters="1"/>
+                    <field name="product_categ_id" icon="fa-folder" select="multi" enable_counters="1"/>
+                </searchpanel>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_stock_count_lines" model="ir.actions.act_window">
+        <field name="name">Counted Products</field>
+        <field name="res_model">warehouse.stock.count.line</field>
+        <field name="view_mode">tree,graph,pivot</field>
+        <field name="search_view_id" ref="warehouse_stock_count_line_search_view"/>
+        <field name="context">{'search_default_filter_date': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No counted products found</p>
+            <p>Counted products appear here once they are recorded inside daily Warehouse Stock Counts.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_stock_count_lines"
+              name="Counted Products"
+              parent="menu_stock_count_root"
+              action="action_stock_count_lines"
+              sequence="20"/>
 </odoo>

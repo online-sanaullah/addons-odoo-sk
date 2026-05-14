@@ -1,3 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_stock_count,access_stock_count,model_warehouse_stock_count,,1,1,1,1
 access_stock_count_line,access_stock_count_line,model_warehouse_stock_count_line,,1,1,1,1
+access_stock_count_request,access_stock_count_request,model_warehouse_stock_count_request,,1,1,1,1
+access_stock_count_request_warehouse,access_stock_count_request_warehouse,model_warehouse_stock_count_request_warehouse,,1,1,1,1

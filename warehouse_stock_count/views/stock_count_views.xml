@@ -1,0 +1,152 @@
+<odoo>
+
+	<record id="warehouse_stock_count_search_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.search</field>
+        <field name="model">warehouse.stock.count</field>
+        <field name="arch" type="xml">
+            <search string="Search Stock Count">
+                <field name="warehouse_id" />
+                <field name="date"/>
+                <field name="create_uid"/>
+                <field name="create_date"/>
+                <group expand="0" string="Group By">
+                	<filter string="Warehouse" name="group_warehouse" domain="[]" context="{'group_by':'warehouse_id'}"/>
+                    <filter string="State" name="group_state" domain="[]" context="{'group_by':'state'}"/>
+                    <filter string="Date" name="group_date" domain="[]" context="{'group_by':'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    
+    <record id="warehouse_stock_count_tree_view" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.tree</field>
+        <field name="model">warehouse.stock.count</field>
+        <field name="arch" type="xml">
+            <tree multi_edit="0" sample="0" decoration-info="state == 'draft'">
+                <field name="warehouse_id" readonly="1"/>
+                <field name="date" readonly="1"/>
+                <field name="create_uid" readonly="1"/>
+                <field name="create_date" readonly="1" optional="hide"/>
+                <field name="state" readonly="1" decoration-warning="state == 'pending'" decoration-success="state in ['approved', 'adjusted']" decoration-danger="state == 'refused'" widget="badge"/>
+            </tree>
+        </field>
+    </record>
+	
+	<record id="approval_request_form_view_inherit" model="ir.ui.view">
+	    <field name="name">approval.request.form.inherit</field>
+	    <field name="model">approval.request</field>
+	    <field name="inherit_id" ref="approvals.approval_request_view_form"/>
+	    <field name="arch" type="xml">
+	        <!-- To add fields, we can locate the position within the tree view -->
+	        <xpath expr="//sheet" position="inside">
+	            <!-- Adding new fields inside the tree -->
+	            <field name="hide_product_location" invisible="1"/>
+	        </xpath>
+	    </field>
+	</record>
+
+	<record id="approval_product_line_view_tree_inherit" model="ir.ui.view">
+	    <field name="name">approval.product.line.view.tree.inherit</field>
+	    <field name="model">approval.product.line</field>
+	    <field name="inherit_id" ref="approvals.approval_product_line_view_tree"/>
+	    <field name="arch" type="xml">
+	        <!-- To add fields, we can locate the position within the tree view -->
+	        <xpath expr="//field[@name='quantity']" position="before">
+	            <!-- Adding new fields inside the tree -->
+	            <field name="location_id" readonly="1" column_invisible="parent.hide_product_location"/>
+	        </xpath>
+	    </field>
+	</record>
+
+	<record id="view_warehouse_form_inherit" model="ir.ui.view">
+	    <field name="name">stock.warehouse.form.inherit.daily.count</field>
+	    <field name="model">stock.warehouse</field>
+	    <field name="inherit_id" ref="stock.view_warehouse"/>
+	    <field name="arch" type="xml">
+	    	<xpath expr="//field[@name='code']" position="after">
+                <field name="daily_stock_count" widget="boolean_toggle"/>
+            </xpath>
+	         <xpath expr="//field[@name='partner_id']" position="after">
+	         	<field name="daily_count_user_ids" widget="many2many_tags" required="daily_stock_count" readonly="not daily_stock_count" />
+	        	<field name="daily_count_product_ids" widget="many2many_tags" readonly="not daily_stock_count" />
+	        </xpath>
+	    </field>
+	</record>
+	
+	<record id="view_approval_categ_form_inherit" model="ir.ui.view">
+	    <field name="name">approval.category.form.inherit.division</field>
+	    <field name="model">approval.category</field>
+	    <field name="inherit_id" ref="approvals.approval_category_view_form"/>
+	    <field name="arch" type="xml">
+	         <xpath expr="//field[@name='division_ids']" position="after">
+	        	<field name="inventory_adjustment" widget="boolean_toggle" />
+	        </xpath>
+	    </field>
+	</record>
+
+    <record id="view_stock_count_form" model="ir.ui.view">
+        <field name="name">warehouse.stock.count.form</field>
+        <field name="model">warehouse.stock.count</field>
+        <field name="arch" type="xml">
+            <form>
+            	<header>
+            		<button name="action_validate" string="Validate" type="object" class="btn-primary"
+                                groups="stock.group_stock_manager" invisible="state!='draft'"/>
+                                
+                    <button name="action_approval_request" string="Request Approval" type="object"
+                    	class="btn-primary" invisible="state != 'validated'" />
+                                
+                    <button name="action_apply_inventory_adjustment" type="object" string="Apply Inventory Adjustment"
+        				class="btn-primary" groups="stock.group_stock_manager" invisible="state != 'approved'"/>
+                    
+            		<field name="state" widget="statusbar" />
+            	</header>
+                <sheet>
+                	<div class="oe_button_box" name="button_box">
+                		<button string="Adjustments" class="oe_stat_button" icon="fa-exchange" name="action_adjustment_product_moves" type="object" invisible="adjustment_moves_count==0"/>
+                	</div>
+                	<label for="warehouse_id"/>
+                    <h1><field name="warehouse_id" placeholder="Select Warehouse" readonly="state != 'draft'" options="{'no_create': True}" domain="warehouse_id_domain"/></h1>
+                	<label for="date"/>
+                    <h2><field name="date" placeholder="Select Date" />
+                    	<field name="warehouse_id_domain" invisible="1" widget="many2many_tags"/>
+                    </h2>
+                    <group>
+                    	<field name="line_ids" readonly="warehouse_id==False or state!='draft'" nolabel="1" colspan="2" context="{'default_state': state}">
+	                        <tree editable="bottom" limit="500">
+	                            <field name="product_id"/>
+	                            <field name="add_new_product" widget="boolean_toggle" readonly="state != 'draft' or product_id==False" column_invisible="1"/>
+	                            <field name="location_id_domain" column_invisible="1"/>
+		    					<field name="location_id" domain="location_id_domain" options="{'no_create': True, 'no_open': True}" readonly="state != 'draft' or product_id==False"/>
+	                            <field name="theoretical_qty" readonly="1"/>
+	                            <field name="counted_qty" readonly="state != 'draft' or location_id==False"/>
+	                            <field name="difference"/>
+	                            <field name="state" column_invisible="1" />
+	                        </tree>
+	                    </field>    
+                    </group>
+                    <field name="adjustment_moves_count" invisible="1" />
+                </sheet>
+                <div class="oe_chatter">
+	                <field name="message_follower_ids"/>
+	                <field name="activity_ids"/>
+	                <field name="message_ids"/>
+	            </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_stock_count" model="ir.actions.act_window">
+        <field name="name">Stock Counts</field>
+        <field name="res_model">warehouse.stock.count</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_stock_count_root"
+              name="Stock Counts"
+              parent="stock.menu_stock_root"/>
+    <menuitem id="menu_stock_count"
+              name="Warehouse Stock Counts"
+              parent="menu_stock_count_root"
+              action="action_stock_count"/>
+</odoo>

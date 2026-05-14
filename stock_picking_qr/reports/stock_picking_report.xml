@@ -1,0 +1,32 @@
+<odoo>
+    <template id="report_picking_qr" inherit_id="stock.report_picking">
+    	<xpath expr="//div[@t-field='o.name']" position="replace">
+    		<t t-if="o.picking_qr and o.picking_type_id.warehouse_id.show_picking_qr">
+    		    <div style="text-align: right;">
+                    <span t-field="o.picking_qr" t-options="{'widget': 'image'}" style="display:block; margin-left:auto; margin-right:0; width:120px; height:120px;"/>
+                </div>
+            </t>
+            <t t-if="not o.picking_qr or not o.picking_type_id.warehouse_id.show_picking_qr">
+                <div t-field="o.name" t-options="{'widget': 'barcode', 'width': 600, 'height': 100, 'img_style': 'width:300px;height:50px;'}">
+	                <div class="bg-light border-1 rounded d-flex flex-column align-items-center justify-content-center p-3 opacity-75 text-muted text-center">
+	                    (document barcode)
+	                </div>
+	            </div>
+            </t>
+	    </xpath>
+	    <xpath expr="//div[@t-field='ml.product_id.barcode']" position="replace">
+	        <t t-if="not ml.product_id.qr or not o.picking_type_id.warehouse_id.show_picking_qr">
+                <div t-field="ml.product_id.barcode" t-options="{'widget': 'barcode', 'symbology': 'auto', 'width': 400, 'height': 100, 'quiet': 0, 'img_style': 'height:35px;'}">
+                    <div class="bg-light border-1 rounded d-flex flex-column align-items-center justify-content-center px-1 py-2 opacity-75 text-muted text-center">
+                        (product barcode)
+                    </div>
+                </div>
+            </t>
+            <t t-if="ml.product_id.qr and o.picking_type_id.warehouse_id.show_picking_qr">
+    		    <div style="text-align: right;">
+                    <span t-field="ml.product_id.qr" t-options="{'widget': 'image'}" style="display:block; margin-left:auto; margin-right:0; width:120px; height:120px;"/>
+                </div>
+            </t>
+	    </xpath>
+    </template>
+</odoo>

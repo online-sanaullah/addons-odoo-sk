@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="purchase_order_form_direct_product_variant_selection" model="ir.ui.view">
+        <field name="name">purchase.order.form.direct.product.variant.selection</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase_product_matrix.purchase_order_form_matrix"/>
+        <field name="priority">40</field>
+        <field name="arch" type="xml">
+            <!--
+                purchase_product_matrix hides product_id and exposes
+                product_template_id. Restore the concrete product.product
+                field as the default purchase-order-line selector so exact
+                internal-reference and barcode searches select the variant
+                directly. Keep the template selector available as an optional
+                hidden column for matrix/configurator workflows.
+            -->
+            <xpath expr="//tree/field[@name='product_id']" position="attributes">
+                <attribute name="column_invisible">0</attribute>
+                <attribute name="optional">show</attribute>
+                <attribute name="string">Product</attribute>
+                <attribute name="placeholder">Search by internal reference, barcode, or product name...</attribute>
+            </xpath>
+
+            <xpath expr="//tree/field[@name='product_template_id']" position="attributes">
+                <attribute name="optional">hide</attribute>
+                <attribute name="string">Product Template</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

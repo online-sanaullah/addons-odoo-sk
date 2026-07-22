@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="approval_request_view_form_partner_account_approval" model="ir.ui.view">
+        <field name="name">approval.request.form.partner.account.approval</field>
+        <field name="model">approval.request</field>
+        <field name="inherit_id" ref="approvals.approval_request_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='reason']" position="after">
+                <group string="Partner Account Change" invisible="not partner_id">
+                    <field name="company_id" readonly="1"/>
+                    <field name="partner_id" readonly="1"/>
+                    <field name="approve_receivable_account" readonly="1"/>
+                    <field name="previous_receivable_account_id"
+                           readonly="1"
+                           invisible="not approve_receivable_account"/>
+                    <field name="proposed_receivable_account_id"
+                           readonly="1"
+                           invisible="not approve_receivable_account"/>
+                    <field name="approve_payable_account" readonly="1"/>
+                    <field name="previous_payable_account_id"
+                           readonly="1"
+                           invisible="not approve_payable_account"/>
+                    <field name="proposed_payable_account_id"
+                           readonly="1"
+                           invisible="not approve_payable_account"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

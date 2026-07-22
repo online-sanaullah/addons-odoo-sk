@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_account_approval_history_tree" model="ir.ui.view">
+        <field name="name">res.partner.account.approval.history.tree</field>
+        <field name="model">res.partner.account.approval.history</field>
+        <field name="arch" type="xml">
+            <tree create="0" delete="0" edit="0">
+                <field name="requested_date"/>
+                <field name="company_id"/>
+                <field name="account_side"/>
+                <field name="previous_account_id"/>
+                <field name="proposed_account_id"/>
+                <field name="state"/>
+                <field name="approval_request_id"/>
+                <field name="resolved_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_partner_account_approval_history_form" model="ir.ui.view">
+        <field name="name">res.partner.account.approval.history.form</field>
+        <field name="model">res.partner.account.approval.history</field>
+        <field name="arch" type="xml">
+            <form create="0" delete="0" edit="0">
+                <sheet>
+                    <group>
+                        <field name="partner_id"/>
+                        <field name="company_id"/>
+                        <field name="account_side"/>
+                        <field name="state"/>
+                        <field name="previous_account_id"/>
+                        <field name="proposed_account_id"/>
+                        <field name="approval_request_id"/>
+                        <field name="requested_by_id"/>
+                        <field name="requested_date"/>
+                        <field name="resolved_by_id"/>
+                        <field name="resolved_date"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+</odoo>

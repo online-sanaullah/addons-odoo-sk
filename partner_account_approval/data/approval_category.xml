@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="approval_category_partner_account_change" model="approval.category">
+        <field name="name">Partner Account Change</field>
+    </record>
+</odoo>

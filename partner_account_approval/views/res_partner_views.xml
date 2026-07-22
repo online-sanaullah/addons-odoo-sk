@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_partner_form_partner_account_approval" model="ir.ui.view">
+        <field name="name">res.partner.form.partner.account.approval</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="account.view_partner_property_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/*[1]" position="before">
+                <field name="show_account_approval_warning" invisible="1"/>
+                <field name="has_open_account_approval_request" invisible="1"/>
+                <field name="can_cancel_account_approval_request" invisible="1"/>
+                <field name="receivable_account_approval_enabled" invisible="1"/>
+                <field name="payable_account_approval_enabled" invisible="1"/>
+                <div class="alert alert-warning mb-2"
+                     role="alert"
+                     invisible="not show_account_approval_warning">
+                    The changed receivable or payable account is pending approval.
+                    Posting of relevant transactions is blocked until the request is approved or rejected.
+                </div>
+            </xpath>
+
+            <xpath expr="//group[field[@name='property_account_receivable_id']]" position="after">
+                <group string="Partner Account Approval" col="2">
+                    <separator string="Receivable Account"
+                               colspan="2"
+                               invisible="not receivable_account_approval_enabled"/>
+                    <field name="previous_receivable_account_id"
+                           readonly="1"
+                           invisible="not receivable_account_approval_enabled or not previous_receivable_account_id"/>
+                    <field name="receivable_account_approval_state"
+                           readonly="1"
+                           invisible="not receivable_account_approval_enabled"/>
+
+                    <separator string="Payable Account"
+                               colspan="2"
+                               invisible="not payable_account_approval_enabled"/>
+                    <field name="previous_payable_account_id"
+                           readonly="1"
+                           invisible="not payable_account_approval_enabled or not previous_payable_account_id"/>
+                    <field name="payable_account_approval_state"
+                           readonly="1"
+                           invisible="not payable_account_approval_enabled"/>
+
+                    <separator string="Approval Request"
+                               colspan="2"
+                               invisible="not has_open_account_approval_request"/>
+                    <field name="last_account_approval_request_id"
+                           readonly="1"
+                           colspan="2"
+                           invisible="not has_open_account_approval_request"/>
+
+                    <button name="action_cancel_partner_account_approval"
+                            string="Cancel Approval and Revert Accounts"
+                            type="object"
+                            class="oe_link"
+                            icon="fa-undo"
+                            colspan="2"
+                            confirm="Cancel the approval request and revert the changed accounts?"
+                            invisible="not can_cancel_account_approval_request"/>
+                </group>
+            </xpath>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_account_approval_requests"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-check-square-o">
+                    <field name="account_approval_request_count"
+                           widget="statinfo"
+                           string="Approvals"/>
+                </button>
+                <button name="action_view_account_approval_history"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-history">
+                    <field name="account_approval_history_count"
+                           widget="statinfo"
+                           string="Account History"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

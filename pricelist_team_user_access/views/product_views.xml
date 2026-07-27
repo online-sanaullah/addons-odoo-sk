@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        The core button calls open_pricelist_rules directly and displays the
+        unrestricted pricelist_item_count. Replace it with a dedicated method and
+        a per-user count so both the opened action and the badge obey access.
+
+        product.product_normal_form_view inherits this common form, and equivalent
+        fields/methods are defined on product.product as well.
+    -->
+    <record id="product_template_form_pricelist_rule_access" model="ir.ui.view">
+        <field name="name">product.template.form.pricelist.rule.access</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='open_pricelist_rules']" position="replace">
+                <button class="oe_stat_button"
+                        name="open_accessible_pricelist_rules"
+                        icon="fa-list-ul"
+                        groups="base_pricelist_division.group_view_pricelists"
+                        type="object">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_value">
+                            <field name="accessible_pricelist_item_count"/>
+                        </span>
+                        <span class="o_stat_text" invisible="accessible_pricelist_item_count == 1">
+                            Extra Prices
+                        </span>
+                        <span class="o_stat_text" invisible="accessible_pricelist_item_count != 1">
+                            Extra Price
+                        </span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

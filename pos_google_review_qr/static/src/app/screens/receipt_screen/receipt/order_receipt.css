@@ -1,0 +1,23 @@
+.pos-receipt .pos-google-review-qr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    text-align: center;
+}
+
+.pos-receipt .pos-google-review-qr-title {
+    font-size: 110%;
+    font-weight: 700;
+    margin-bottom: 0.2em;
+}
+
+.pos-receipt .pos-google-review-qr-message {
+    font-size: 85%;
+    margin-bottom: 0.45em;
+}
+
+.pos-receipt .pos-google-review-qr-image {
+    height: 200px;
+    image-rendering: pixelated;
+    object-fit: contain;
+    width: 200px;
+}

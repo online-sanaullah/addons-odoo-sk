@@ -1,0 +1,145 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h2 class="oe_slogan">PoS Google Review QR Receipt</h2>
+        <h3 class="oe_slogan">
+            Turn every receipt into a simple invitation to review the correct shop
+        </h3>
+        <p class="oe_mt32 text-center">
+            Configure a Google Maps or Google Business Profile review link on each
+            Point of Sale. The module prints a scannable QR code, a heading, and a
+            customizable message on the customer receipt.
+        </p>
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Key features</h3>
+        <div class="row">
+            <div class="col-md-6">
+                <ul>
+                    <li>Independent review link for every Point of Sale</li>
+                    <li>Custom receipt heading and instruction</li>
+                    <li>Receipt preview, print, and reprint support</li>
+                </ul>
+            </div>
+            <div class="col-md-6">
+                <ul>
+                    <li>Secure Google URL validation</li>
+                    <li>No Google API key or external QR service</li>
+                    <li>Compatible with multi-shop deployments</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Configuration</h3>
+        <ol>
+            <li>Open Point of Sale &gt; Configuration &gt; Settings.</li>
+            <li>Select the required shop.</li>
+            <li>Open the Bills &amp; Receipts section.</li>
+            <li>Enable Google Review QR Code.</li>
+            <li>Paste the shop's Google “Ask for reviews” link.</li>
+            <li>Optionally change the receipt heading and message.</li>
+            <li>Save and reload any PoS screen that is already open.</li>
+        </ol>
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Use the right Google link</h3>
+        <p>
+            The recommended destination is the <strong>Ask for reviews</strong>
+            link from the shop's Google Business Profile. It opens the review
+            flow with the correct location selected.
+        </p>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Link type</th>
+                    <th>Customer experience</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Google Ask for reviews link</td>
+                    <td>Opens the direct review flow for the configured shop.</td>
+                </tr>
+                <tr>
+                    <td>General Google Maps shop link</td>
+                    <td>Opens the listing; the customer chooses Write a review.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Designed for multi-shop use</h3>
+        <p>
+            Every PoS configuration has independent settings, so each receipt
+            directs customers to the correct physical location.
+        </p>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>PoS configuration</th>
+                    <th>Configured destination</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Shop A</td>
+                    <td>Shop A Google Business Profile</td>
+                </tr>
+                <tr>
+                    <td>Shop B</td>
+                    <td>Shop B Google Business Profile</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<section class="oe_container oe_dark">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Testing checklist</h3>
+        <ol>
+            <li>Reload the PoS after saving the configuration.</li>
+            <li>Print or reprint a receipt.</li>
+            <li>Scan the QR with a phone.</li>
+            <li>Confirm that the correct shop and review flow open.</li>
+            <li>Test a physical receipt before production use.</li>
+        </ol>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h3 class="oe_slogan">Troubleshooting</h3>
+        <ul>
+            <li>
+                If the QR is missing, confirm the feature is enabled for the
+                correct PoS and reload the PoS frontend.
+            </li>
+            <li>
+                If Maps opens without the review form, use the Google Business
+                Profile Ask for reviews link instead of a general listing link.
+            </li>
+            <li>
+                If a physical QR is difficult to scan, check printer scaling,
+                resolution, and print-head condition.
+            </li>
+        </ul>
+        <p>
+            Detailed user, administrator, technical, and troubleshooting guides
+            are included in the module's <code>docs</code> directory.
+        </p>
+        <p><strong>Author:</strong> Sana Ullah Khan</p>
+    </div>
+</section>

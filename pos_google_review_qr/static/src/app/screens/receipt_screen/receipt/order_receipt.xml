@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t
+        t-name="pos_google_review_qr.OrderReceipt"
+        t-inherit="point_of_sale.OrderReceipt"
+        t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('after-footer')]" position="before">
+            <div t-if="props.data.google_review_qr_code" class="pos-google-review-qr">
+                <br/>
+                <div
+                    t-if="props.data.google_review_qr_title"
+                    class="pos-google-review-qr-title">
+                    <t t-esc="props.data.google_review_qr_title"/>
+                </div>
+                <div
+                    t-if="props.data.google_review_qr_message"
+                    class="pos-google-review-qr-message">
+                    <t t-esc="props.data.google_review_qr_message"/>
+                </div>
+                <img
+                    t-att-src="props.data.google_review_qr_code"
+                    class="pos-receipt-qrcode pos-google-review-qr-image"
+                    alt="Google review QR code"/>
+                <br/>
+            </div>
+        </xpath>
+    </t>
+</templates>

@@ -1,0 +1,5 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_company_division_base,access.crm.team.division.base,model_company_division,base.group_user,1,0,0,0
+access_company_division_public,access.crm.team.division.public,model_company_division,base.group_public,1,0,0,0
+access_company_division_portal,access.crm.team.division.portal,model_company_division,base.group_portal,1,0,0,0
+access_company_division_sale_admin,access.crm.team.division.sale.admin,model_company_division,base.group_erp_manager,1,1,1,1

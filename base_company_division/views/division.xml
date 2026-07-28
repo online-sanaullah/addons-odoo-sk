@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	
+	<record model="ir.ui.view" id="view_company_division_list">
+      <field name="name">view.company.division.list</field>
+      <field name="model">company.division</field>
+      <field name="arch" type="xml">
+        <tree string="Divisions">
+          <field name="name"/>
+        </tree>
+      </field>
+    </record>
+    
+</odoo>

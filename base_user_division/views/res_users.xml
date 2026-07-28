@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+	<!-- Inherit the res company form view -->
+	<record id="view_res_users_form_inherit" model="ir.ui.view">
+	    <field name="name">res.users.form.inherit.division</field>
+	    <field name="model">res.users</field>
+	    <field name="inherit_id" ref="base.view_users_form"/>
+	    <field name="arch" type="xml">
+	         <xpath expr="//field[@name='companies_count']" position="after">
+	        	<field name="division_ids" widget="many2many_tags" options="{'no_create': True}"/>
+	        </xpath>
+	    </field>
+	</record>
+</odoo>

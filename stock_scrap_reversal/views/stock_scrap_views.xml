@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="stock_scrap_form_view_reversal" model="ir.ui.view">
+        <field name="name">stock.scrap.form.reversal</field>
+        <field name="model">stock.scrap</field>
+        <field name="inherit_id" ref="stock.stock_scrap_form_view"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//form/header/button[@name='action_validate']"
+                   position="after">
+                <button name="action_reverse_scrap"
+                        string="Reverse Scrap"
+                        type="object"
+                        class="btn-secondary"
+                        icon="fa-undo"
+                        groups="stock.group_stock_manager"
+                        invisible="state != 'done' or is_reversed"
+                        confirm="This will restore the scrapped quantity to its original source location and create the corresponding valuation reversal. Continue?"/>
+            </xpath>
+
+            <xpath expr="//sheet/div[@name='button_box']" position="before">
+                <widget name="web_ribbon"
+                        title="Reversed"
+                        bg_color="text-bg-warning"
+                        invisible="not is_reversed"/>
+            </xpath>
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_reversal_move"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-undo"
+                        invisible="not reversal_move_id">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Reversal Move</span>
+                    </div>
+                </button>
+            </xpath>
+
+            <xpath expr="//field[@name='date_done']" position="after">
+                <field name="is_reversed" invisible="1"/>
+                <field name="reversal_move_id"
+                       readonly="1"
+                       invisible="not is_reversed"/>
+                <field name="reversal_date"
+                       readonly="1"
+                       invisible="not is_reversed"/>
+                <field name="reversed_by_id"
+                       widget="many2one_avatar_user"
+                       readonly="1"
+                       invisible="not is_reversed"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="stock_scrap_tree_view_reversal" model="ir.ui.view">
+        <field name="name">stock.scrap.tree.reversal</field>
+        <field name="model">stock.scrap</field>
+        <field name="inherit_id" ref="stock.stock_scrap_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="is_reversed"
+                       string="Reversed"
+                       widget="boolean_toggle"
+                       optional="show"
+                       readonly="1"/>
+                <field name="reversal_date"
+                       optional="hide"
+                       readonly="1"/>
+                <field name="reversed_by_id"
+                       widget="many2one_avatar_user"
+                       optional="hide"
+                       readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_scrap_search_view_reversal" model="ir.ui.view">
+        <field name="name">stock.scrap.search.reversal</field>
+        <field name="model">stock.scrap</field>
+        <field name="inherit_id" ref="stock.stock_scrap_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search/group" position="before">
+                <separator/>
+                <filter name="reversed_scraps"
+                        string="Reversed"
+                        domain="[('is_reversed', '=', True)]"/>
+                <filter name="not_reversed_scraps"
+                        string="Not Reversed"
+                        domain="[('is_reversed', '=', False)]"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
